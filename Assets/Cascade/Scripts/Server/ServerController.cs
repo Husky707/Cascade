@@ -80,10 +80,10 @@ public class ServerController : NetworkManager
     {
         int macCon = maxConnections;
         HubSettings = ScriptableObject.CreateInstance("RoomSettings") as RoomSettings;
-        HubSettings.Init((uint)maxConnections, 0);
+        HubSettings.Init((uint)maxConnections, 0, true);
         HubRules = new HubRules();
-        HubControll = new HubController();
-        _ServerHub = new GameRoom(HubRules, HubSettings, HubControll);
+        //HubControll = new HubController();
+        //ServerHub = new GameRoom(HubRules, HubSettings, HubControll);
 
         _rooms.Add(0, ServerHub);
         Debug.Log("Hub has been setup");

@@ -15,9 +15,14 @@ public class PlayerController : MonoBehaviour
 
     public uint RoomID => _roomID;
     private uint _roomID = 0;
-
     public int Player => _player;
     private int _player = 0;
+    public eColors[] Colors => _colors;
+    private eColors[] _colors;
+
+    private eColors CurrentColor => Colors[curColorIndex];
+    public int curColorIndex { get => _colindex; private set { _colindex = value; if (value < 0 || value >= Colors.Length) _colindex = 0; } }
+    private int _colindex = 0;
 
     public eDicePlacers CurrentPlacer => _placer;
     private eDicePlacers _placer = eDicePlacers.Single;
@@ -29,6 +34,7 @@ public class PlayerController : MonoBehaviour
     {
         isInit = true;
 
+        ServerComm = server;
         _player = player;
         _roomID = room;
         //Game =  CreateGame(GameByType(gameType));
@@ -41,7 +47,7 @@ public class PlayerController : MonoBehaviour
         if (!isInit || Messenger == null)
             return;
 
-        Messenger.DirectMessenger(ServerComm, RoomID, Player, Game.Rules);
+        Messenger.DirectMessenger(ServerComm, RoomID, Player);
         Debug.Log("Messenger is ready");
     }
 
@@ -61,24 +67,24 @@ public class PlayerController : MonoBehaviour
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Outgoing Requests
-    public void RequestPlacement(Tile onTile)
+    public void RequestPlacement(TileData onTile)
     {
-        if (Game.CurrentTurn != Player)
+        if (Game.GameState.CurrentTurn != CurrentColor)
             return;
 
-        if(Game.ValidatePlacement(Player, onTile))
+        if(Game.ValidatePlacement(CurrentColor, onTile))
         {
-            Game.RequestPlacement(Player, onTile);
-            Messenger.RequestPlacement(onTile.Column, onTile.Row);
+            Game.RequestPlacement(Player, CurrentColor, onTile.index);
+            Messenger.RequestPlacement(onTile.x, onTile.y);
             Debug.Log("Player " + Player.ToString() + " placed a die");
         }
     }
 
-    public void RequestAbilitySelection(eDicePlacers type)
+    public void RequestAbilityTypeSelection(eDicePlacers type)
     {
-        if(Game.ValidateAbilitySelection(Player, type))
+        if(Game.ValidateAbilityTypeSelection(CurrentColor, type))
         {
-            Game.RequestAbilitySelection(Player, type);
+            Game.RequestAbilityTypeSelection(Player, CurrentColor, type);
             Messenger.RequestAbilitySelection(type);
             Debug.Log("Player " + Player.ToString() + " changed their placer to " + type.ToString());
         }

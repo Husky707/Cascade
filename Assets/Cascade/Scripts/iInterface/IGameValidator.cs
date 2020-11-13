@@ -3,7 +3,8 @@ public interface IGameValidator
 {
 
     bool ValidatePlacement(eColors color, TileData tile);
-    bool ValidateAbilitySelection(eColors forColor, eDicePlacers type);
+    bool ValidateAbilityTypeSelection(eColors forColor, eDicePlacers type);
+    bool ValidateAbilityValueSelection(eColors eColors, uint diceValue);
     bool ValidatePlayRequest(int player, eRoomType type);
 
 }

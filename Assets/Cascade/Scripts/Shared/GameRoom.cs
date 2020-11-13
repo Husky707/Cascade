@@ -9,12 +9,12 @@ using UnityEngine;
 public class GameRoom 
 {
 
-    public GameRoom(IGameRule rules, RoomSettings settings, GameController controller)
+    public GameRoom(RoomSettings settings, GameController controller)
     {
         //Name
         //ID
-        _roomRules = rules;
-        _type = rules.GameType;
+        _roomRules = controller.Rules;
+        //_type = settings.
         ObserverSettings = settings;
         _roomGame = controller;
     }
@@ -187,7 +187,8 @@ public class GameRoom
     [Server]
     private int GetAvailablePlayerPosition()
     {
-        for(int i = 0; i <= RoomRules.PlayerCount; i++)
+        int numPlayers = RoomGame.Rules.Settings.NumPlayers;
+        for (int i = 0; i <= numPlayers; i++)
         {
             bool iAvailable = true;
             foreach(int pos in Players.Values)
@@ -236,7 +237,7 @@ public class GameRoom
     [Server]
     private bool IsReceivingPlayers()
     {
-        if (Players.Count >= RoomRules.PlayerCount)
+        if (Players.Count >= RoomGame.Rules.Settings.NumPlayers)
             return false;
 
         return true;
@@ -255,7 +256,7 @@ public class GameRoom
     private bool CanAddPlayer(int position = -1)
     {
         int numPlayers = Players.Count;
-        if (numPlayers >= RoomRules.PlayerCount)
+        if (numPlayers >= RoomGame.Rules.Settings.NumPlayers)
             return false;
 
         if(position > -1)

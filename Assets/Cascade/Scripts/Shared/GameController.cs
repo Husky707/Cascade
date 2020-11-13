@@ -7,8 +7,6 @@ using System;
 public class GameController : INetworkCommunicator, IGameValidator, IResolveGameRequests
 {
 
-    public event Action<int> TurnChange = delegate { };
-
     public IGameRule Rules => _rules;
     private IGameRule _rules = null;
     public GameBoard Board => _board;
@@ -19,19 +17,93 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
     public bool GameIsActive => _gameIsActive;
     private bool _gameIsActive = false;
 
-    #region Init
-    public GameController CreateGame(eRoomType type)
-    {
-        return this;
-    }
+    PlacementHandler GameHandler => _gameHandler;
+    private PlacementHandler _gameHandler = null;
 
+    private bool isHeadless = false;
+    private bool isInit = false;
+
+    #region Init
+    public GameController(IGameRule rules, GameData data, GameBoard board = null)
+    {
+        _board = board;
+        _gameState = data;
+        _rules = rules;
+
+        _gameHandler = new PlacementHandler(_gameState, _rules, _board);
+
+        if (board == null)
+            isHeadless = true;
+        isInit = true;
+    }
     #endregion
 
     public void BeginGame()
     {
-        NextTurn();
+        if (!isInit)
+        {
+            Debug.Log("Please initialize the Game Controller before starting the game");
+            return ;
+        }
+
         _gameIsActive = true;
+        GameState.SetTurnToNext();
     }
+
+    private bool LocalValidation(int player, eColors color)
+    {
+        if (player <= 0 || !PlayerOwnsColor(player, color) || !GameIsActive)
+            return false;
+
+        return true;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    #region Local Requests
+    public virtual void RequestPlacement(int player, eColors color, uint targetTileId)
+    {
+        if (!LocalValidation(player, color))
+            return;
+
+        TileData targetData = GetTileFromCoords(targetTileId);
+        if (!ValidatePlacement(color, targetData))
+            return;
+
+        GameHandler.HandlePlacementRequest(GameState, targetTileId);
+        GameState.SetTurnToNext();
+    }
+    public virtual void RequestAbilityTypeSelection(int player, eColors color, eDicePlacers type)
+    {
+        if (!LocalValidation(player, color))
+            return;
+
+        if (!ValidateAbilityTypeSelection(color, type))
+            return;
+
+        GameState.SetPlacerType(color, type);
+    }
+
+    public virtual void RequestAbilityValueSelection(int player, eColors color, uint value)
+    {
+        if (!LocalValidation(player, color))
+            return;
+
+        if (!ValidateAbilityValueSelection(color, value))
+            return;
+
+        GameState.SetPlacerValue(color, value);
+    }
+
+    public virtual void RequestAbilityOrientationSelection(int player, eColors forColor, ePlacerOrientation orientation)
+    {
+        if (!LocalValidation(player, forColor))
+            return;
+
+        //Currently rules don't care
+
+        GameState.SetPlacerOrientation(forColor, orientation);
+    }
+    #endregion
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Validation
@@ -43,12 +115,20 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
         return Rules.ValidatePlacement(color, target);
     }
 
-    public virtual bool ValidateAbilitySelection(eColors color, eDicePlacers type)
+    public virtual bool ValidateAbilityTypeSelection(eColors color, eDicePlacers type)
     {
         if (!GameIsActive)
             return false;
 
-        return Rules.ValidateAbilitySelection(color, type);
+        return Rules.ValidateAbilityTypeSelection(color, type);
+    }
+
+    public virtual bool ValidateAbilityValueSelection(eColors color, uint value)
+    {
+        if (!GameIsActive)
+            return false;
+
+        return Rules.ValidateAbilityValueSelection(color, value);
     }
 
     public virtual bool ValidatePlayRequest(int player, eRoomType type)
@@ -59,45 +139,65 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    #region Requests
-    public virtual void RequestPlacement(eColors color, TileData target)
+    #region Helpers
+    public bool PlayerOwnsColor(int player, eColors targetColor)
     {
-        if (!ValidatePlacement(color, target))
-            return;
-        //Place dice
+        foreach(ColorAssignments eachRule in Rules.Settings.ColorSettings)
+        {
+            if (eachRule.Color == targetColor)
+            {
+                if (eachRule.PlayerAssignment == player)
+                    return true;
+                else
+                    return false;
+            }
+        }
+        return false;
     }
-    public virtual void RequestAbilitySelection(eColors color, eDicePlacers type)
+
+    private TileData GetTileFromCoords(uint tileId)
     {
-        if (!ValidateAbilitySelection(color, type))
-            return;
+        if (tileId >= GameState.BoardState.Length)
+        {
+            Debug.Log("Bad tile ID. Could not find tile data for id " + tileId.ToString());
+            return default;
+        }
 
-        GameState.
+        return GameState.BoardState[tileId];
     }
-
 
     #endregion
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Network Requests
     public virtual void RequestPlacement(NetworkIdentity identity, uint roomid, uint xx, uint yy)
     {
-        throw new System.NotImplementedException();
+        return;
     }
 
-    public virtual void RequestAbilitySelection(NetworkIdentity identity, uint roomid, eDicePlacers type)
+    public virtual void RequestAbilityTypeSelection(NetworkIdentity identity, uint roomid,  eDicePlacers type)
     {
-        throw new System.NotImplementedException();
+        return;
+    }
+    public virtual void RequestAbilityValueSelection(NetworkIdentity identity, uint roomid, uint value)
+    {
+        return;
     }
 
     public virtual void RequestPlay(NetworkIdentity identity, eRoomType type)
     {
-        throw new System.NotImplementedException();
+        return;
     }
 
     public virtual void RequestCreateRoom(NetworkIdentity identity, eRoomType type)
     {
-        throw new System.NotImplementedException();
+        return;
     }
+
+    public virtual void RequestAbilityOrientationSelection(NetworkIdentity identity, uint roomid, ePlacerOrientation ePlacerOrientation)
+    {
+        return;
+    }
+
     #endregion
 }

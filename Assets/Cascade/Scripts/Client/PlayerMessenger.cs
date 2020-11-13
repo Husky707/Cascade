@@ -18,12 +18,10 @@ public class PlayerMessenger : NetworkBehaviour
     public int Player => _player;
     private int _player = 0;
 
-    private IGameRule GameRules = null;
-    public void DirectMessenger(INetworkCommunicator server, uint roomId, int player, IGameRule rules)
+    public void DirectMessenger(INetworkCommunicator server, uint roomId, int player)
     {
         _roomID = roomId;
         _player = player;
-        GameRules = rules;
         ServerLink = server;
     }
 
@@ -33,17 +31,7 @@ public class PlayerMessenger : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        if(GameRules == null)
-        {
-            Debug.Log("Cannot find game rules for the player");
-            return;
-        }    
-
-        //Client validate command
-        if(GameRules.ValidateTileClick(Player, xx, yy))
-        {
             OnRequestPlacement(xx, yy);
-        }
     }
 
     [Client]
@@ -52,17 +40,7 @@ public class PlayerMessenger : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        if (GameRules == null)
-        {
-            Debug.Log("Cannot find game rules for the player");
-            return;
-        }
-
-        if(GameRules.ValidateAbilitySelection(Player, type))
-        {
-            OnRequestAbilitySelection(type);
-        }
-
+        OnRequestAbilitySelection(type);
     }
 
     [Client]
@@ -94,7 +72,7 @@ public class PlayerMessenger : NetworkBehaviour
     [Command]
     private void OnRequestAbilitySelection(eDicePlacers type)
     {
-        ServerLink.RequestAbilitySelection(this.netIdentity, RoomID, type);
+        ServerLink.RequestAbilityTypeSelection(this.netIdentity, RoomID, type);
     }
 
     [Command]

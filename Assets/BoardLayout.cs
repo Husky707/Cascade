@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewLayout", menuName = "BoardLayout")]
+[CreateAssetMenu(fileName = "NewLayout", menuName = "GameSetup/BoardLayout")]
 public class BoardLayout : ScriptableObject
 {
-
-    public uint Players => _players;
-    private uint _players = 2;
 
     public uint Columns => _columns;
     [SerializeField] private uint _columns = 12;
@@ -21,18 +18,32 @@ public class BoardLayout : ScriptableObject
     [SerializeField] private int[] homeX;
     [SerializeField] private int[] homeY;
     [SerializeField] private eTileType[] homeType;
-
-    private Dictionary<int, eTileType> homeTiles = new Dictionary<int, eTileType>();
-    private Dictionary<eColors, int> playerColors = new Dictionary<eColors, int>();
-
+    [SerializeField] private eColors[] homeColor;
     public eTileType[] RowData => _rowData;
     private eTileType[] _rowData;
 
+
+
+    private Dictionary<int, eTileType> homeTiles = new Dictionary<int, eTileType>();
+    private Dictionary<eColors, int> playerColors = new Dictionary<eColors, int>();
     public bool DataInit => dataInit;
     private bool dataInit = false;
 
     [SerializeField] public Texture baseTexture;
     [SerializeField] public Texture OnTexture;
+
+    private void Awake()
+    {
+        InitData();
+    }
+    public void InitData()
+    {
+        SetHomeLocations();
+        SetColorOwnership();
+        dataInit = true;
+    }
+
+    //Set by editor script
     public void SetRowSpecials(bool[][] data)
     {
         _rowData = new eTileType[Columns * Rows];
@@ -49,14 +60,6 @@ public class BoardLayout : ScriptableObject
             }
         }
     }
-
-    public void InitData()
-    {
-        SetHomeLocations();
-        SetColorOwnership();
-        dataInit = true;
-    }
-
     public void SetHomeLocations()
     {
         homeTiles = new Dictionary<int, eTileType>();

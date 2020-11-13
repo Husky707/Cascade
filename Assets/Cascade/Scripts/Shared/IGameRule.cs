@@ -2,7 +2,14 @@
 public interface IGameRule : IGameValidator
 {
     GameData Data { get; set; }
-    eRoomType GameType { get; set; }
-    bool AllowAbilities { get; set; }
+    GameSettings Settings { get; set; }
+
+    bool ValidateCanPlaceDie(TileDataSet areaInfo);
+    bool ValidateCanPlaceAbility(TileDataSet[] areaInfo);
+
+    EffectedTileData GetEffectOnTile(TileData effector, TileData target);
+    EffectedTileData GetPlacedDieEffect(TileData target);
+    void SetCascadeScore(CascadeEventData data);
+    
 
 }

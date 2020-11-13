@@ -10,18 +10,27 @@ public class Tile : MonoBehaviour, ITargetable
 {
     public static event Action<TileData> TileTargeted = delegate { };
 
+    public float Width => _width;
+    [SerializeField] private float _width = 1f;
+    public float Height => _height;
+    [SerializeField] private float _height = 1f;
+    public float VerticalMargin => _verticalMargin;
+    [SerializeField] private float _verticalMargin = 0.1f;
+    public float HorizontalMargin => _horizontalMargin;
+    [SerializeField] private float _horizontalMargin = 0.1f;
+
     public TileData Data => _data;
     private TileData _data;
 
     private bool isIinit = false;
 
-    public void Init(uint xx, uint yy, eTileType type = eTileType.Basic)
+    public void Init(uint indexx, uint xx, uint yy, eTileType type = eTileType.Basic)
     {
         if (isIinit)
             return;
 
         isIinit = true;
-        _data = new TileData(xx, yy, type);
+        _data = new TileData(indexx, xx, yy, type);
     }
 
     private void OnMouseUpAsButton()
@@ -39,8 +48,9 @@ public class Tile : MonoBehaviour, ITargetable
 
 public struct TileData
 {
-    public TileData(uint _x, uint _y, eTileType Type = eTileType.Basic, eColors Color = eColors.Noone, int Player = 0, uint Value = 0)
+    public TileData(uint index, uint _x, uint _y, eTileType Type = eTileType.Basic, eColors Color = eColors.Noone, int Player = 0, uint Value = 0)
     {
+        _index = index;
         xx = _x;
         yy = _y;
         _type = Type;
@@ -49,6 +59,8 @@ public struct TileData
         _value = Value;
     }
 
+    public uint index => _index;
+    private uint _index;
     public uint x => xx;
     private uint xx;
 

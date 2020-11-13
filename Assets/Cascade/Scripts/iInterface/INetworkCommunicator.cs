@@ -5,8 +5,9 @@ public interface INetworkCommunicator
 {
     //Bridge between Server and Client methods
     void RequestPlacement(NetworkIdentity identity, uint roomid, uint xx, uint yy);
-
-    void RequestAbilitySelection(NetworkIdentity identity, uint roomid, eDicePlacers type);
+    void RequestAbilityTypeSelection(NetworkIdentity identity, uint roomid,  eDicePlacers type);
+    void RequestAbilityValueSelection(NetworkIdentity identity, uint roomid,  uint value);
+    void RequestAbilityOrientationSelection(NetworkIdentity identity, uint roomid, ePlacerOrientation ePlacerOrientation);
 
     void RequestPlay(NetworkIdentity identity, eRoomType type);
 
