@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[RequireComponent(typeof(PlayerMessenger))]
+[RequireComponent(typeof(PlayerReceiver))]
 public class PlayerController : MonoBehaviour
 {
 
     private PlayerTargeter Targeter = new PlayerTargeter();
-    [SerializeField] PlayerReceiver Receiver = null;
-    [SerializeField] PlayerMessenger Messenger = null;
+    private PlayerMessenger Messenger = null;
+    private PlayerReceiver Receiver = null;
 
     private GameController Game = null;
     private INetworkCommunicator ServerComm = null;
@@ -29,6 +32,12 @@ public class PlayerController : MonoBehaviour
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Init
+
+    private void Awake()
+    {
+        Receiver = GetComponent<PlayerReceiver>();
+        Messenger = GetComponent<PlayerMessenger>();
+    }
 
     public void Init(INetworkCommunicator server, eRoomType gameType, int player, uint room)
     {
@@ -54,13 +63,13 @@ public class PlayerController : MonoBehaviour
     private void OnEnable()
     {
         if (isInit)
-            Targeter.NewTarget += RequestPlacement;
+            Targeter.NewTargetAquired += RequestPlacement;
     }
 
     private void OnDisable()
     {
         if (isInit)
-            Targeter.NewTarget -= RequestPlacement;
+            Targeter.NewTargetAquired -= RequestPlacement;
     }
 
     #endregion
@@ -69,6 +78,8 @@ public class PlayerController : MonoBehaviour
     #region Outgoing Requests
     public void RequestPlacement(TileData onTile)
     {
+        //Debug.Log("Aquired a target. Making a placemetn request");
+
         if (Game.GameState.CurrentTurn != CurrentColor)
             return;
 

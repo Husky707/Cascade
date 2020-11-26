@@ -6,94 +6,68 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
-public class GameRoom 
+public class GameRoom : Room
 {
-
-    public GameRoom(RoomSettings settings, GameController controller)
+    public GameRoom(string name, uint id, eRoomType type, RoomSettings settings, GameController controller)
+              :base(name, id, type, settings)
     {
-        //Name
-        //ID
+
         _roomRules = controller.Rules;
-        //_type = settings.
-        ObserverSettings = settings;
         _roomGame = controller;
     }
 
-    private Dictionary<int, NetworkConnection> Observers = new Dictionary<int, NetworkConnection>();
 
     public Dictionary<int, int> Players => _players;
     private Dictionary<int, int> _players = new Dictionary<int, int>();
     public List<int> Spectators => _spectators;
     private List<int> _spectators = new List<int>();
 
-    public string Name => _name;
-    private string _name = "Default Room";
-    public uint RoomId => roomId;
-    private uint roomId = 0;
-    public eRoomType Type => _type;
-    private eRoomType _type= eRoomType.Hub;
     public GameController RoomGame => _roomGame;
     private GameController _roomGame = null;
     public IGameRule RoomRules => _roomRules;
     private IGameRule _roomRules = null;
 
-    private RoomSettings ObserverSettings = null;
-
-    public bool RoomIsActive => IsRoomActive();
-    private bool _roomIsActive = true;
-
     public bool GameIsActive => RoomGame.GameIsActive;
-    public bool IsEmpty => Observers.Count <= 0;
 
 
-    public void SendTest()
-    {
-        foreach(int id in Observers.Keys)
-            Observers[id].identity.GetComponent<PlayerMessenger>().RPCTest();
-    }
-
-
+    ///////////////////////////////////////////////////////////////////////////////////
     #region Public Input Methods
-
-    [Server]
-    public void AddObserver(NetworkConnection conn)
-    {
-        if (IsReceivingObservers())
-            OnAddObserver(conn);
-    }
 
     [Server]
     public void AddPlayer(NetworkConnection conn, int requestedSpot = -1)
     {
-        if (IsReceivingObservers() && IsReceivingPlayers())
-            OnAddPlayer(conn.connectionId, requestedSpot);
+        if (!IsReceivingObservers())
+            return;
+
+        if (!IsReceivingPlayers())
+        {
+            Debug.Log("Player denied.");
+            return;
+        }
+
+        AddObserver(conn);
+        OnAddPlayer(conn.connectionId, requestedSpot);
     }
 
     [Server]
     public void AddSpectator(NetworkConnection conn)
     {
-        if(!IsReceivingObservers() || !IsReceivingSpectators())
+        if (!IsReceivingObservers())
+            return;
+
+        if (!IsReceivingSpectators())
         {
-            Debug.Log("Spectator denied");
+            Debug.Log("Spectator denied.");
             return;
         }
 
+        AddObserver(conn);
         OnAddSpectator(conn.connectionId);
     }
 
     #endregion
 
-    #region Public Data Methods
-
-    [Server]
-    public bool IsRoomActive()
-    {
-        if (_roomIsActive == false)
-            return false;
-
-        return true;
-    }
-
+    ///////////////////////////////////////////////////////////////////////////////////
     #region PlayerData
 
     [Server]
@@ -135,9 +109,8 @@ public class GameRoom
     }
     #endregion
 
-    #endregion
 
-
+    ///////////////////////////////////////////////////////////////////////////////////
     #region Helpers
 
     #region Add Clients
@@ -182,6 +155,7 @@ public class GameRoom
         }
 
         _players.Add(id, toPos);
+
     }
 
     [Server]
@@ -209,30 +183,7 @@ public class GameRoom
         return -1;
     }
 
-    [Server]
-    private void OnAddObserver(NetworkConnection conn)
-    {
 
-        int id = conn.connectionId;
-        if(Observers.ContainsKey(id))
-        {
-            Debug.Log("Room already contains player with id " + id.ToString());
-            return;
-        }
-
-        Observers.Add(id, conn);
-    }
-
-    [Server]
-    private bool IsReceivingObservers()
-    {
-        if (Observers.Count >= ObserverSettings.MaxObservers)
-            return false;
-        if (!RoomIsActive)
-            return false;
-
-        return true;
-    }
 
     [Server]
     private bool IsReceivingPlayers()
@@ -274,33 +225,7 @@ public class GameRoom
 
     #region Remove CLients
 
-    [Server]
-    public void RemoveObserver(int connId)
-    {
-        if (!Observers.ContainsKey(connId))
-            return;
 
-        Observers.Remove(connId);
-
-        if (Players.ContainsKey(connId))
-        {
-            //OnRemovePlayer(connId);
-        }
-    }
-
-    [Server]
-    public List<int> RemoveObservers()
-    {
-        List<int> removed = new List<int>();
-        foreach (int id in Observers.Keys)
-            removed.Add(id);
-
-        Observers.Clear();
-        RemoveSpectators();
-        RemovePlayers();
-
-        return removed;
-    }
 
     [Server]
     public List<int> RemoveSpectators()
@@ -335,15 +260,58 @@ public class GameRoom
         return removed;
     }
 
-    private void OnRemovePlayer()
+    [Server]
+    public override void RemoveObserver(int connId)
+    {
+        base.RemoveObserver(connId);
+
+        if (Players.ContainsKey(connId))
+        {
+            Players.Remove(connId);
+            OnPlayerRemoved(connId);
+        }
+
+        if(Spectators.Contains(connId))
+        {
+            Spectators.Remove(connId);
+            OnSpectatorRemoved(connId);
+        }
+    }
+
+    [Server]
+    public override int[] RemoveObservers()
+    {
+        int[] removed = base.RemoveObservers();
+        foreach(int connId in removed)
+        {
+            if (Players.ContainsKey(connId))
+            {
+                Players.Remove(connId);
+                OnPlayerRemoved(connId);
+            }
+
+            if (Spectators.Contains(connId))
+            {
+                Spectators.Remove(connId);
+                OnSpectatorRemoved(connId);
+            }
+        }
+
+        return removed;
+    }
+
+    [Server]
+    protected virtual void OnPlayerRemoved(int id)
     {
 
     }
 
-    private void OnRemoveSpectator()
+    [Server]
+    protected virtual void OnSpectatorRemoved(int id)
     {
 
     }
+
     #endregion
 
     #endregion

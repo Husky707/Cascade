@@ -7,8 +7,19 @@ public class PlayerReceiver : NetworkBehaviour
 {
 
     [SerializeField] PlayerController Player = null;
+    [SerializeField] LocalLobbyManager LobbyManager = null;
+    [SerializeField] LocalRoomManager RoomManager = null;
 
+    #region Init
+
+
+
+    #endregion
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Game Messeges
+
+    [Server]
     [TargetRpc]
     public void GameOver()
     {
@@ -16,6 +27,7 @@ public class PlayerReceiver : NetworkBehaviour
             return;
     }
 
+    [Server]
     [TargetRpc]
     public void GameStarted()
     {
@@ -23,6 +35,7 @@ public class PlayerReceiver : NetworkBehaviour
             return;
     }
 
+    [Server]
     [TargetRpc]
     public void OtherTookAction(eDicePlacers type, int xx, int yy)
     {
@@ -30,6 +43,7 @@ public class PlayerReceiver : NetworkBehaviour
             return;
     }
 
+    [Server]
     [TargetRpc]
     public void BoardUpdate(int[][] valueOwnerArray)
     {
@@ -39,7 +53,9 @@ public class PlayerReceiver : NetworkBehaviour
 
     #endregion
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Room Messeges
+    [Server]
     [TargetRpc]
     public void EnteredRoom()
     {
@@ -47,6 +63,7 @@ public class PlayerReceiver : NetworkBehaviour
             return;
     }
 
+    [Server]
     [TargetRpc]
     public void ExitedRoom()
     {
@@ -55,34 +72,68 @@ public class PlayerReceiver : NetworkBehaviour
     }
     #endregion
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region LobbyMesseges
+    [Server]
     [TargetRpc]
-    public void JoinedLobby()
+    public void JoinedLobby(LobbyData lobbyStat, LobbyPlayer myLobbyPlayer)
     {
         if (!hasAuthority)
             return;
+
+        LobbyManager?.OnJoinedLobby(lobbyStat, myLobbyPlayer);
     }
 
+    [Server]
     [TargetRpc]
-    public void OtherJoinedLobby()
+    public void OtherJoinedLobby(LobbyPlayer otherPlayer)
     {
         if (!hasAuthority)
             return;
+
+        LobbyManager?.OnOtherJoinedLobby(otherPlayer);
     }
 
+    [Server]
     [TargetRpc]
-    public void OtherLeftLobby()
+    public void OtherLeftLobby(LobbyPlayer otherPlayer)
     {
         if (!hasAuthority)
             return;
+
+        LobbyManager?.OnOtherLeftLobby(otherPlayer);
     }
 
+    [Server]
     [TargetRpc]
-    public void ExitedLobby(bool toGame)
+    public void FoundGame()
     {
         if (!hasAuthority)
             return;
+
+        LobbyManager?.OnFoundGame();
     }
+
+    [Server]
+    [TargetRpc]
+    public void LobbyTimedOut()
+    {
+        if (!hasAuthority)
+            return;
+
+        LobbyManager?.OnLobbyTimeout();
+    }
+
+    [Server]
+    [TargetRpc]
+    public void RemovedFromLobby()
+    {
+        if (!hasAuthority)
+            return;
+
+        LobbyManager?.OnRemovedFromLobby();
+    }
+
 
     #endregion 
 

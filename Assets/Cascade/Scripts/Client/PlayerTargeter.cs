@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PlayerTargeter
 {
-    public event Action<TileData> NewTarget = delegate { };
+    public event Action<TileData> NewTargetAquired = delegate { };
     public PlayerTargeter(bool active = true)
     {
         Tile.TileTargeted += this.OnTileTargeted;
@@ -18,7 +18,7 @@ public class PlayerTargeter
     private void OnTileTargeted(TileData target)
     {
         if (isActive)
-            NewTarget.Invoke(target);
+            NewTargetAquired.Invoke(target);
     }
 
     public void OnDestroy()

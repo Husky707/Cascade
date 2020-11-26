@@ -38,13 +38,19 @@ public class ServerController : NetworkManager
 
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
+        if (conn == null)
+            Debug.Log("The added player's connection is null");
+
         GameObject newPlayer = SpawnPlayer(conn);
         PlayerMessenger messeneger = newPlayer.GetComponent<PlayerMessenger>();
         //messeneger.ServerLink = HubControll;
-        messeneger.SetUpPlayer(0, -1);
+        //messeneger.SetUpPlayer(0, -1);
 
         NetworkServer.AddPlayerForConnection(conn, newPlayer);
-        AssignNewClient(conn);
+        //AssignNewClient(conn);
+
+        PlayerReceiver receiver = newPlayer.GetComponent<PlayerReceiver>();
+        receiver.JoinedLobby(eRoomType.Hub, eLobbyType.Default, new LobbyPlayer(0));
     }
 
     [Server]

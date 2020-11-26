@@ -81,6 +81,8 @@ public class PlacementHandler
     {
         if (handleDataOnly || Board == null)
             return;
+
+        Debug.Log("TODO: Apply data changes to the gameboard");
     }
 
     #endregion

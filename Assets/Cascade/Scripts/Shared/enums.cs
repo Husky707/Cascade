@@ -11,6 +11,7 @@ public enum eCascadeIntensity { Noone, Single, Low, High, Extreame}
 
 public enum ePlacementZones { Noone, Adjacent, Diagonal, Orthogonal, Free }
 public enum eRoomType { Void, Hub, Clasic1v1, Clasic2v2, Clasic4v4 }
+public enum eLobbyType { Void, Default, Hub, Clasic1v1, Clasic2v2, Clasic4v4 }
 
 public enum eColors { Noone, Orange, Yellow, Blue, LightBlue, Green, LightGreen }
 

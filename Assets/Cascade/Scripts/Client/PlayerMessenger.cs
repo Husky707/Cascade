@@ -78,7 +78,11 @@ public class PlayerMessenger : NetworkBehaviour
     [Command]
     private void OnRequestPlay(eRoomType type)
     {
-        if (ServerLink == null) Debug.Log("Server Link is null");
+        if (ServerLink == null)
+        {
+            Debug.Log("Server Link is null. Cannot send messages");
+            return;
+        }
 
         ServerLink.RequestPlay(this.netIdentity, type);
     }
