@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lobbyPrefabs:
   - {fileID: 5057030430670012283, guid: 74340df64c1fcbf40866b7a3c738fcc5, type: 3}
+  - {fileID: 5057030430670012283, guid: 15c0cf1f8d684ec4eba16780e7c75297, type: 3}

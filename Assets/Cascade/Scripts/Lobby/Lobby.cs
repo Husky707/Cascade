@@ -15,6 +15,7 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
     public LobbyData Data => _data;
     private LobbyData _data;
 
+    public eLobbyType LobbyType => _lobbyType;
     [SerializeField] private eLobbyType _lobbyType = eLobbyType.Void;
 
     public float QueueTime => _queueTime;
@@ -34,12 +35,19 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
             return;
 
         isInit = true;
-        _data = new LobbyData(_lobbyType, roomTarget, players[0]);
+        if(players == null)
+        {
+            _data = new LobbyData(_lobbyType, roomTarget);
+        }
+        else
+        {
+            _data = new LobbyData(_lobbyType, roomTarget, players[0]);
 
-        //Add Existing players
-        int playerCount = players.Length;
-        for (int i = 1; i < playerCount; i++)
-            _data.AddPlayer(players[i]);
+            //Add Existing players
+            int playerCount = players.Length;
+            for (int i = 1; i < playerCount; i++)
+                _data.AddPlayer(players[i]);
+        }
     }
     #endregion
 
@@ -98,6 +106,8 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
     {
         //Begin Enter game animation
         visuals.SetActive(false);
+        FoundGame.Invoke();
+
         Destroy(gameObject);
     }
 
@@ -105,6 +115,7 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
     {
         //Timeout popup. Discord link
         visuals.SetActive(false);
+
         Destroy(gameObject);
     }
 
@@ -112,6 +123,7 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
     {
         //Return to Hub scene
         visuals.SetActive(false);
+
         Destroy(gameObject);
     }
     #endregion

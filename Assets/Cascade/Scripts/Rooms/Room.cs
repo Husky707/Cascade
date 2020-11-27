@@ -6,6 +6,7 @@ public class Room
 {
     //int: ID created by Mirror for each NetConn
     protected Dictionary<int, NetworkConnection> Observers = new Dictionary<int, NetworkConnection>();
+    public int NumObservers => Observers.Count;
 
     public string Name => _name;
     protected string _name = "Default Room";
@@ -52,6 +53,15 @@ public class Room
     }
 
     [Server]
+    public bool HasObserver(int target)
+    {
+        if (Observers.ContainsKey(target))
+            return true;
+
+        return false;
+    }
+
+    [Server]
     protected bool IsReceivingObservers()
     {
         if (Observers.Count >= ObserverSettings.MaxObservers)
@@ -67,27 +77,23 @@ public class Room
     [Server]
     public bool AddObserver(NetworkConnection conn)
     {
-        if (IsReceivingObservers())
-        {
-            OnAddObserver(conn);
-            return true;
-        }
 
-        return false;
+        return IsReceivingObservers() && OnAddObserver(conn);
     }
 
     [Server]
-    private void OnAddObserver(NetworkConnection conn)
+    private bool OnAddObserver(NetworkConnection conn)
     {
 
         int id = conn.connectionId;
         if (Observers.ContainsKey(id))
         {
             UnityEngine.Debug.Log("Room already contains player with id " + id.ToString());
-            return;
+            return false;
         }
 
         Observers.Add(id, conn);
+        return true;
     }
 
     [Server]

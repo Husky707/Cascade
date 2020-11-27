@@ -20,6 +20,13 @@ public struct LobbyData
         _currentPlayers = new List<LobbyPlayer>(1);
         _currentPlayers.Add(firstPlayer);
     }
+    public LobbyData(eLobbyType lobbyType, eRoomType roomType)
+    {
+        _lobbyType = lobbyType;
+        _targetType = roomType;
+
+        _currentPlayers = new List<LobbyPlayer>(0);
+    }
 
     public LobbyPlayer[] GetPlayers()
     {

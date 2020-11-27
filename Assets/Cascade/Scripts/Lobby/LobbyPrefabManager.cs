@@ -31,14 +31,14 @@ public class LobbyPrefabManager : ScriptableObject
 
         foreach (GameObject obj in lobbyPrefabs)
         {
-            IAmLobby type = obj.GetComponent<IAmLobby>();
-            if(type == null)
+            Lobby lobby = obj.GetComponent<Lobby>();
+            if(lobby == null)
             {
-                Debug.Log("The lobby prfab " + obj.name + " needs to have an IAmLobby interface");
+                Debug.Log("The lobby prfab " + obj.name + " needs to have a Lobby Script");
                 continue;
             }
 
-            _lobbyPrefabs.Add(type.Data.LobbyType, obj);
+            _lobbyPrefabs.Add(lobby.LobbyType, obj);
         }
     }
 

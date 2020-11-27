@@ -7,15 +7,17 @@ using UnityEngine;
 
 public class ServerController : NetworkManager
 {
-    public Dictionary<uint, GameRoom> Rooms => _rooms;
-    private Dictionary<uint, GameRoom> _rooms = new Dictionary<uint, GameRoom>();
+    public Dictionary<uint, Room> Rooms => _rooms;
+    private Dictionary<uint, Room> _rooms = new Dictionary<uint, Room>();
     
-    public GameRoom ServerHub => _ServerHub;
-    [SerializeField] private GameRoom _ServerHub = null;
+    public Room ServerHub => _serverHub;
+    private Room _serverHub = null;
 
     private HubRules HubRules;
     private RoomSettings HubSettings;
     private HubController HubControll;
+
+    private ServerLobbyManager LobbyManager;
 
     bool isServer = false;
     private void Update()
@@ -42,15 +44,12 @@ public class ServerController : NetworkManager
             Debug.Log("The added player's connection is null");
 
         GameObject newPlayer = SpawnPlayer(conn);
-        PlayerMessenger messeneger = newPlayer.GetComponent<PlayerMessenger>();
-        //messeneger.ServerLink = HubControll;
-        //messeneger.SetUpPlayer(0, -1);
 
         NetworkServer.AddPlayerForConnection(conn, newPlayer);
-        //AssignNewClient(conn);
+        AssignNewClient(conn);
 
-        PlayerReceiver receiver = newPlayer.GetComponent<PlayerReceiver>();
-        receiver.JoinedLobby(eRoomType.Hub, eLobbyType.Default, new LobbyPlayer(0));
+        //Tests
+        LobbyManager.OnPlayerRequestEnterLobby(conn, eRoomType.Clasic1v1);
     }
 
     [Server]
@@ -66,30 +65,22 @@ public class ServerController : NetworkManager
     [Server]
     private void AssignNewClient(NetworkConnection conn)
     {
-        ServerHub.AddObserver(conn);
+        if (!ServerHub.AddObserver(conn))
+            Debug.Log("The new client was not allowed into the server hub ");
     }
 
     #region Helpers
-    private uint count = 0;
-    [Server]
-    private uint GenerateUniqueID()
-    {
-        int random = (int)UnityEngine.Random.Range(1000000, 4000000);
-        int topper = random - random % 1000000;
-        uint retVal = (uint)topper + count;
-        count++;
-        return retVal;
-    }
+
 
     [Server]
     private void SetupHub()
     {
-        int macCon = maxConnections;
         HubSettings = ScriptableObject.CreateInstance("RoomSettings") as RoomSettings;
         HubSettings.Init((uint)maxConnections, 0, true);
-        HubRules = new HubRules();
-        //HubControll = new HubController();
-        //ServerHub = new GameRoom(HubRules, HubSettings, HubControll);
+
+        _serverHub = new Room("Hub", 0, eRoomType.Hub, HubSettings);
+
+        LobbyManager = gameObject.AddComponent<ServerLobbyManager>();
 
         _rooms.Add(0, ServerHub);
         Debug.Log("Hub has been setup");
