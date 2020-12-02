@@ -29,6 +29,7 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
         _board = board;
         _gameState = data;
         _rules = rules;
+        _rules.InitRules(data, data.Settings);
 
         _gameHandler = new PlacementHandler(_gameState, _rules, _board);
 
@@ -170,16 +171,20 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     #region Network Requests
-    public virtual void RequestPlacement(NetworkIdentity identity, uint roomid, uint xx, uint yy)
+    public virtual void RequestPlacement(NetworkIdentity identity, uint xx, uint yy)
     {
         return;
     }
 
-    public virtual void RequestAbilityTypeSelection(NetworkIdentity identity, uint roomid,  eDicePlacers type)
+    public virtual void RequestAbilityTypeSelection(NetworkIdentity identity, eDicePlacers type)
     {
         return;
     }
-    public virtual void RequestAbilityValueSelection(NetworkIdentity identity, uint roomid, uint value)
+    public virtual void RequestAbilityValueSelection(NetworkIdentity identity, uint value)
+    {
+        return;
+    }
+    public virtual void RequestAbilityOrientationSelection(NetworkIdentity identity, ePlacerOrientation ePlacerOrientation)
     {
         return;
     }
@@ -194,10 +199,6 @@ public class GameController : INetworkCommunicator, IGameValidator, IResolveGame
         return;
     }
 
-    public virtual void RequestAbilityOrientationSelection(NetworkIdentity identity, uint roomid, ePlacerOrientation ePlacerOrientation)
-    {
-        return;
-    }
 
     #endregion
 }

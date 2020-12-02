@@ -2,16 +2,66 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System;
 
-public class PlayerReceiver : NetworkBehaviour
+[RequireComponent(typeof(PlayerController))]
+public class PlayerReceiver : NetworkBehaviour, IReceiverServerMessages
 {
+    #region Events
+    //Room
+    public event Action<string, eRoomType, uint, eRoomPlayers> ActOnEnteredRoom = delegate { };
+    public event Action<string, eRoomType>                     ActOnExitedRoom = delegate { };
+    //Lobby
+    public event Action<LobbyData, LobbyPlayer> ActOnJoinedLobby = delegate { };
+    public event Action<LobbyPlayer>            ActOnOtherJoinedLobby = delegate { };
+    public event Action<LobbyPlayer>            ActOnOtherLeftLobby = delegate { };
+    public event Action                         ActOnFoundGame = delegate { };
+    public event Action                         ActOnLobbyTimedOut = delegate { };
+    public event Action                         ActOnRemovedFromLobby = delegate { };
+    //Game
+    public event Action             ActOnGameOver = delegate { };
+    public event Action             ActOnGameStarted = delegate { };
+    public event Action<int, eColors[]> ActOnInitPlayer = delegate { };
+    public event Action<int[][]>    ActOnBoardUpdate = delegate { };
+    public event Action<eDicePlacers, ePlacerOrientation, int, int ,int> ActOnOtherTookAction = delegate { };
 
-    [SerializeField] PlayerController Player = null;
-    [SerializeField] LocalLobbyManager LobbyManager = null;
-    [SerializeField] LocalRoomManager RoomManager = null;
+
+    #endregion
+    ///////////////////////////////////////////////////////
 
     #region Init
+    public bool NetworkInit => _networkInit;
+    bool _networkInit = false;
+    [Server]
+    public void SetupNetworkCommunication(INetworkCommunicator comm)
+    {
+        if (comm == null)
+            return;
 
+        PlayerController player = GetComponent<PlayerController>();
+        if(player == null)
+        {
+            Debug.Log("Error trying to init player's netComm. No player found on receiver obj");
+            return;
+        }
+
+        _networkInit = true;
+        player.SetupNetworkCommunication(comm);
+    }
+
+    [Server]
+    public void RemoveNetworkCommunication()
+    {
+        PlayerController player = GetComponent<PlayerController>();
+        if (player == null)
+        {
+            Debug.Log("Error trying to remove player's netComm. No player found on receiver obj");
+            return;
+        }
+
+        _networkInit = false;
+        player.RemoveNetworkCommunication();
+    }
 
 
     #endregion
@@ -25,6 +75,8 @@ public class PlayerReceiver : NetworkBehaviour
     {
         if (!hasAuthority)
             return;
+
+        ActOnGameOver.Invoke();
     }
 
     [Server]
@@ -33,14 +85,18 @@ public class PlayerReceiver : NetworkBehaviour
     {
         if (!hasAuthority)
             return;
+
+        ActOnGameStarted.Invoke();
     }
 
     [Server]
     [TargetRpc]
-    public void OtherTookAction(eDicePlacers type, int xx, int yy)
+    public void OtherTookAction(eDicePlacers type, ePlacerOrientation orientation, int value, int xx, int yy)
     {
         if (!hasAuthority)
             return;
+
+        ActOnOtherTookAction.Invoke(type, orientation, value, xx, yy);
     }
 
     [Server]
@@ -49,6 +105,36 @@ public class PlayerReceiver : NetworkBehaviour
     {
         if (!hasAuthority)
             return;
+
+        ActOnBoardUpdate.Invoke(valueOwnerArray);
+    }
+
+    [Server]
+    public void InitializeGamePlayer(int playerid, eColors[] colors)
+    {
+        PlayerController Player = GetComponent<PlayerController>();
+        if (Player == null)
+        {
+            Debug.Log("Error trying to initialize server game player. No player found on receiver obj");
+            return;
+        }
+
+        ActOnInitPlayer.Invoke(playerid, colors);
+        InitLocalPlayer(playerid, colors);
+    }
+
+    [TargetRpc]
+    private void InitLocalPlayer(int player, eColors[] colors)
+    {
+        PlayerController Player = GetComponent<PlayerController>();
+
+        if (Player == null)
+        {
+            Debug.Log("Error trying to initialize local game player. No player found on receiver obj");
+            return;
+        }
+
+        ActOnInitPlayer.Invoke(player, colors);
     }
 
     #endregion
@@ -57,19 +143,24 @@ public class PlayerReceiver : NetworkBehaviour
     #region Room Messeges
     [Server]
     [TargetRpc]
-    public void EnteredRoom()
+    public void EnteredRoom(string roomName, eRoomType roomType, uint roomid, eRoomPlayers asPlayer)
     {
         if (!hasAuthority)
             return;
+
+        ActOnEnteredRoom.Invoke(roomName, roomType, roomid, asPlayer);
     }
 
     [Server]
     [TargetRpc]
-    public void ExitedRoom()
+    public void ExitedRoom(string roomName, eRoomType roomType)
     {
         if (!hasAuthority)
             return;
+
+        ActOnExitedRoom.Invoke(roomName, roomType);
     }
+
     #endregion
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +172,8 @@ public class PlayerReceiver : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        LobbyManager?.OnJoinedLobby(lobbyStat, myLobbyPlayer);
+        ActOnJoinedLobby.Invoke(lobbyStat, myLobbyPlayer);
+        //LobbyManager?.OnJoinedLobby(lobbyStat, myLobbyPlayer);
     }
 
     [Server]
@@ -91,7 +183,8 @@ public class PlayerReceiver : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        LobbyManager?.OnOtherJoinedLobby(otherPlayer);
+        ActOnOtherJoinedLobby.Invoke(otherPlayer);
+        //LobbyManager?.OnOtherJoinedLobby(otherPlayer);
     }
 
     [Server]
@@ -101,7 +194,8 @@ public class PlayerReceiver : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        LobbyManager?.OnOtherLeftLobby(otherPlayer);
+        ActOnOtherLeftLobby.Invoke(otherPlayer);
+        //LobbyManager?.OnOtherLeftLobby(otherPlayer);
     }
 
     [Server]
@@ -111,7 +205,8 @@ public class PlayerReceiver : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        LobbyManager?.OnFoundGame();
+        ActOnFoundGame();
+        //LobbyManager?.OnFoundGame();
     }
 
     [Server]
@@ -121,7 +216,8 @@ public class PlayerReceiver : NetworkBehaviour
         if (!hasAuthority)
             return;
 
-        LobbyManager?.OnLobbyTimeout();
+        ActOnLobbyTimedOut.Invoke();
+        //LobbyManager?.OnLobbyTimeout();
     }
 
     [Server]
@@ -130,8 +226,8 @@ public class PlayerReceiver : NetworkBehaviour
     {
         if (!hasAuthority)
             return;
-
-        LobbyManager?.OnRemovedFromLobby();
+        ActOnRemovedFromLobby.Invoke();
+        //LobbyManager?.OnRemovedFromLobby();
     }
 
 

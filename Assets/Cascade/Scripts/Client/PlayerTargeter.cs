@@ -10,20 +10,21 @@ public class PlayerTargeter
     public PlayerTargeter(bool active = true)
     {
         Tile.TileTargeted += this.OnTileTargeted;
-        isActive = active;
+        _isActive = active;
     }
 
-    public bool isActive = true;
+    public bool isActive => _isActive;
+    private bool _isActive = false;
 
     private void OnTileTargeted(TileData target)
     {
-        if (isActive)
+        if (_isActive)
             NewTargetAquired.Invoke(target);
     }
 
     public void OnDestroy()
     {
-        isActive = false;
+        _isActive = false;
         Tile.TileTargeted -= this.OnTileTargeted;
     }
 }

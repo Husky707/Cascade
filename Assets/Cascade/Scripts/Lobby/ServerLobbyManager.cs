@@ -115,37 +115,57 @@ public class ServerLobbyManager : MonoBehaviour
         return false;
     }
 
-    /////////////////////////////////////////////////////////////////////
-    #region Input Events
-    public void OnPlayerRequestEnterLobby(NetworkConnection player, eRoomType targetLobby)
+    private bool CanPlayerEnterLobby(NetworkConnection player, eRoomType targetLobby)
     {
-        if (!AllowJoinLobies || targetLobby == eRoomType.Void)
-            return;
+        if (player == null || targetLobby == eRoomType.Void)
+            return false;
 
-        if(LobbyIsBanned(targetLobby))
+        if (!AllowJoinLobies)
+            return false;
+
+        if (LobbyIsBanned(targetLobby))
         {
             Debug.Log("Player " + player.connectionId.ToString() + " tried to enter a banned lobby. Lobby: " + targetLobby.ToString());
-            return;
+            return false;
         }
 
         LobbyRoom lobby = GetLobbyByRoomType(targetLobby);
         //Does lobby with target exits
-        if(lobby == null)
+        if (lobby == null)
+        {
+            //No: Can we create a new one
+            if (!AllowNewLobbies)
+                return false;
+        }
+
+        return true;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    #region Input Events
+    public bool OnPlayerRequestEnterLobby(NetworkConnection player, eRoomType targetLobby)
+    {
+            return CanPlayerEnterLobby(player, targetLobby);
+    }
+
+    public void AddPlayerToLobby(NetworkConnection player, eRoomType targetLobby)
+    {
+        if (!CanPlayerEnterLobby(player, targetLobby))
+            return;
+
+        LobbyRoom lobby = GetLobbyByRoomType(targetLobby);
+        //Does lobby exists
+        if (lobby == null)
         {
             //No: Create new lobby
             if (!AllowNewLobbies)
                 return;
 
             lobby = NewLobby(targetLobby);
-            lobby.PlayerJoinedLobby(player);
-            return;
-        }
-        //Yes: add to that lobby
-        else
-        {
-            lobby.PlayerJoinedLobby(player);
         }
 
+        //Yes: add to that lobby
+        lobby.PlayerJoinedLobby(player);
     }
 
     public void OnPlayerRequestExitLobby(int playerid, eRoomType targetLobby)
@@ -211,7 +231,7 @@ public class ServerLobbyManager : MonoBehaviour
         for(int i = 0; i < count; i++)
         {
             RemoveEventListeners(_currentLobbies[i]);
-            _currentLobbies[i].Close();
+            _currentLobbies[i].CloseLobby();
             _currentLobbies[i] = null;
         }
 
@@ -228,7 +248,7 @@ public class ServerLobbyManager : MonoBehaviour
 
         RemoveEventListeners(target);
         RemoveLobbyFromArray(target);
-        target.Close();
+        target.CloseLobby();
     }
 
     public void DissableNewLobbies()
@@ -279,7 +299,7 @@ public class ServerLobbyManager : MonoBehaviour
     {
         if (!AllowNewLobbies)
             return null;
-
+        
         string name = gameType.ToString() + " Lobby";
         uint id = (uint)GenerateLobbyID();
         RoomSettings settings = new RoomSettings();

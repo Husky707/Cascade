@@ -1,9 +1,10 @@
 ﻿
 public interface IGameRule : IGameValidator
 {
-    GameData Data { get; set; }
-    GameSettings Settings { get; set; }
+    GameData Data { get; }
+    GameSettings Settings { get; }
 
+    void InitRules(GameData data, GameSettings settings);
     bool ValidateCanPlaceDie(TileDataSet areaInfo);
     bool ValidateCanPlaceAbility(TileDataSet[] areaInfo);
 

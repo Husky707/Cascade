@@ -21,8 +21,8 @@ public class HubController : GameController
     [Server]
     public override void RequestCreateRoom(NetworkIdentity identity, eRoomType type)
     {        return;    }
-    public override void RequestAbilityTypeSelection(NetworkIdentity identity, uint roomid, eDicePlacers type)
+    public override void RequestAbilityTypeSelection(NetworkIdentity identity, eDicePlacers type)
     { return; }
-    public override void RequestPlacement(NetworkIdentity identity, uint roomid, uint xx, uint yy)
+    public override void RequestPlacement(NetworkIdentity identity, uint xx, uint yy)
     { return; }
 }

@@ -5,25 +5,41 @@ using Mirror;
 using System;
 using UnityEngine.UIElements;
 
-
+[RequireComponent(typeof(PlayerController))]
 public class PlayerMessenger : NetworkBehaviour
 {
     //All Possible Messegas to send to the Server
 
-    //Null unless on server
-    private INetworkCommunicator ServerLink = null;
-    public uint RoomID => _roomID;
-    private uint _roomID = 0;
+    public INetworkCommunicator ServerLink { get { if (!isServer) return null; return _serverLink; }}
+    private INetworkCommunicator _serverLink = null;
 
-    public int Player => _player;
-    private int _player = 0;
-
-    public void DirectMessenger(INetworkCommunicator server, uint roomId, int player)
+    #region Init
+    [Server]
+    public void SetupNetworkCommunication(INetworkCommunicator netCom)
     {
-        _roomID = roomId;
-        _player = player;
-        ServerLink = server;
+        if (netCom == null)
+            return;
+
+        _serverLink = netCom;
     }
+
+    [Server]
+    public void RemoveNetworkCommunication()
+    {
+        if (_serverLink == null)
+            return;
+
+        _serverLink = null;
+    }
+
+    #endregion
+
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    #region Clientside Calls
+
+    ////////////////////////////////////////////////////////////////////////////////
+    #region Gameplay Requests
 
     [Client]
     public void RequestPlacement(uint xx, uint yy)
@@ -35,22 +51,43 @@ public class PlayerMessenger : NetworkBehaviour
     }
 
     [Client]
-    public void RequestAbilitySelection(eDicePlacers type)
+    public void RequestAbilityTypeSelection(eDicePlacers type)
     {
         if (!hasAuthority)
             return;
 
-        OnRequestAbilitySelection(type);
+        OnRequestAbilityTypeSelection(type);
     }
 
+    [Client]
+    public void RequestAbilityValueSelection(uint value)
+    {
+        if (!hasAuthority)
+            return;
+
+        OnRequestAbilityValueSelection(value);
+    }
+
+    [Client]
+    public void RequestAbilityOrientationSelection(ePlacerOrientation orientation)
+    {
+        if (!hasAuthority)
+            return;
+
+        OnRequestAbilityOrientationSelection(orientation);
+    }
+
+    #endregion
+
+    /////////////////////////////////////////////////////////////////////////////
+    #region Lobby Requests
     [Client]
     public void RequestPlay(eRoomType type)
     {
         if (!hasAuthority)
             return;
 
-        if (RoomID == 0)
-            OnRequestPlay(type);
+        OnRequestPlay(type);
     }
 
     [Client]
@@ -58,46 +95,96 @@ public class PlayerMessenger : NetworkBehaviour
     {
         if (!hasAuthority)
             return;
+
+        Debug.Log("Creating rooms not implemented");
         return;
     }
 
+    #endregion
 
+    #endregion
+
+
+    /////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    #region Send To Server
+
+    /////////////////////////////////////////////////////////////////////////////
+    #region Gameplay commands
 
     [Command]
     private void OnRequestPlacement(uint xx, uint yy)
     {
-        ServerLink.RequestPlacement(this.netIdentity, RoomID, xx, yy);
-    }
-
-    [Command]
-    private void OnRequestAbilitySelection(eDicePlacers type)
-    {
-        ServerLink.RequestAbilityTypeSelection(this.netIdentity, RoomID, type);
-    }
-
-    [Command]
-    private void OnRequestPlay(eRoomType type)
-    {
-        if (ServerLink == null)
+        if (_serverLink == null)
         {
             Debug.Log("Server Link is null. Cannot send messages");
             return;
         }
 
-        ServerLink.RequestPlay(this.netIdentity, type);
+        _serverLink.RequestPlacement(this.netIdentity, xx, yy);
     }
 
-    [TargetRpc]
-    public void SetUpPlayer(uint roomid, int player)
+    [Command]
+    private void OnRequestAbilityTypeSelection(eDicePlacers type)
     {
-        _roomID = roomid;
-        _player = player;
-        Debug.Log("Player " + player.ToString() + " has been setup in room " + roomid.ToString());
+        if (_serverLink == null)
+        {
+            Debug.Log("Server Link is null. Cannot send messages");
+            return;
+        }
+
+        _serverLink.RequestAbilityTypeSelection(this.netIdentity, type);
     }
 
-    [TargetRpc]
-    public void RPCTest()
+    [Command]
+    private void OnRequestAbilityValueSelection(uint value)
     {
-        Debug.Log("Omg Messege received");
+        if (_serverLink == null)
+        {
+            Debug.Log("Server Link is null. Cannot send messages");
+            return;
+        }
+
+        _serverLink.RequestAbilityValueSelection(this.netIdentity, value);
     }
+
+    [Command]
+    private void OnRequestAbilityOrientationSelection(ePlacerOrientation orientation)
+    {
+        if (_serverLink == null)
+        {
+            Debug.Log("Server Link is null. Cannot send messages");
+            return;
+        }
+
+        _serverLink.RequestAbilityOrientationSelection(this.netIdentity, orientation);
+    }
+    #endregion
+
+    /////////////////////////////////////////////////////////////////////////////
+    #region Lobby Commands
+    [Command]
+    private void OnRequestPlay(eRoomType type)
+    {
+        if (_serverLink == null)
+        {
+            Debug.Log("Server Link is null. Cannot send messages");
+            return;
+        }
+
+        Debug.Log("Sending play request to server");
+        _serverLink.RequestPlay(this.netIdentity, type);
+    }
+
+    #endregion
+
+    #endregion
+
+
+
+    /////////////////////////////////////////////////////////////////////////////
+
+
+
+
 }

@@ -36,6 +36,7 @@ public class GameData
     #region Init
     public GameData(BoardLayout layout, GameSettings settings)
     {
+        _settings = settings;
         int numPlayers = settings.NumPlayers;
         int numColors = settings.ColorSettings.Length;
 
@@ -124,7 +125,8 @@ public class GameData
     #endregion
 
     /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    public GameSettings Settings => _settings;
+    private GameSettings _settings = null;
     public TileData[] BoardState => _boardState;
     private TileData[] _boardState;
     public bool GameOver => _gameOver;

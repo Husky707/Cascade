@@ -1,14 +1,25 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameCreator : MonoBehaviour
 {
-    private CascadeGame Game;
-    [SerializeField] eRoomType GameType = eRoomType.Hub;
-    public GameCreator(eRoomType gameType)
+
+    [SerializeField] private CascadeGame[] CascadeGames;
+
+    public CascadeGame GetGame(eRoomType target)
     {
-        //Create the game
+        if(CascadeGames == null)
+        {
+            Debug.Log("Game creator not set up correctly");
+            return null;
+        }
+
+        foreach(CascadeGame type in CascadeGames)
+        {
+            if (type.GameType == target)
+                return type;
+        }
+
+        return null;
     }
 
 }

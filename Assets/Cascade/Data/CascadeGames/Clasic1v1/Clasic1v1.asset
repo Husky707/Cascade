@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a779a865178aa144dbcdd1cf5e9d36fe, type: 3}
+  m_Name: Clasic1v1
+  m_EditorClassIdentifier: 
+  _gameType: 4
+  _gameModeName: Clasic 1 vs. 1
+  _gameSettings: {fileID: 11400000, guid: 6f12cb1f5c318414694888972ef6550a, type: 2}
+  _roomSettings: {fileID: 11400000, guid: b297442fba6f32c479419f1a4169779d, type: 2}
+  _board: {fileID: 269071315380269033, guid: fc5db666478add24eb3b3176a7ed1759, type: 3}
+  _prefab: {fileID: 0}

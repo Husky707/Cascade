@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Mirror;
@@ -70,23 +69,30 @@ public class LobbyRoom : Room, ICommToClient
         OnPlayerLeftLobby(id);
     }
 
-    public void Close()
+    protected override void Close()
     {
         //Notify observers
-        foreach(int id in Observers.Keys)
-        {
-            PlayerReceiver client = GetClient(id);
-            if (client == null)
-                continue;
+        if (Observers != null || NumObservers > 0)
+            foreach (int id in Observers.Keys)
+            {
+                PlayerReceiver client = GetClient(id);
+                if (client == null)
+                    continue;
 
-            client.RemovedFromLobby();
-        }
+                client.RemovedFromLobby();
+            }
 
         _roomIsActive = false;
         _lobbyPlayers = null;
         RemoveObservers();
 
         LobbyClosed.Invoke(this);
+        base.Close();
+    }
+
+    public void CloseLobby()
+    {
+        Close();
     }
 
 
@@ -97,7 +103,7 @@ public class LobbyRoom : Room, ICommToClient
         foreach (int id in Observers.Keys)
             GetClient(id)?.LobbyTimedOut();
 
-        Close();
+        CloseLobby();
     }
 
     private void OnPlayerJoinedLobby(NetworkConnection conn)
@@ -143,7 +149,7 @@ public class LobbyRoom : Room, ICommToClient
         if(NumObservers <= 0)
         {
             Debug.Log("Last player has left. Closing lobby " + Name);
-            Close();
+            CloseLobby();
         }
         else
         {
@@ -175,24 +181,34 @@ public class LobbyRoom : Room, ICommToClient
         if (NumObservers != _numToStart)
             return;
 
-        foreach (int id in Observers.Keys)
-            GetClient(id)?.FoundGame();
-        //Still need to assign player rolls according to rules
+        Debug.Log("Lobby: " + Name + " found a game!");
+        GameRoom newRoom = ServerController.Server.NewGameRoom(Type);
+        if(newRoom == null)
+        {
+            Debug.Log("Lobby: " + Name + " has enough players for a game, but failed to create new game room");
+            return;
+        }
 
-        Close();
+        foreach (int id in Observers.Keys)
+        {
+            PlayerReceiver client = GetClient(id);
+            if (client == null)
+                continue;
+
+            client.FoundGame();
+
+            NetworkConnection conn = Observers[id];
+            RemoveObserver(id);
+
+            if (!newRoom.AddPlayer(conn))
+                Debug.Log("New game rejected waiting lobby player");
+        }
+
+        CloseLobby();
     }
 
     /////////////////////////////////////////////////////////////////////
     #region Helpers
-
-    [Server]
-    public PlayerReceiver GetClient(int targetid)
-    {
-        if (!Observers.ContainsKey(targetid))
-            return null;
-
-        return Observers[targetid].identity.GetComponent<PlayerReceiver>();
-    }
 
     private List<int> uniqueIds = new List<int>();
     private LobbyPlayer GenerateLobbyPlayer()

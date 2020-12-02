@@ -105,9 +105,10 @@ public class Lobby : MonoBehaviour, IManageLobby, IAmLobby
     public void OnFoundGame()
     {
         //Begin Enter game animation
-        visuals.SetActive(false);
         FoundGame.Invoke();
 
+        //Temp fix
+        visuals.SetActive(false);
         Destroy(gameObject);
     }
 

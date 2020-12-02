@@ -74,4 +74,9 @@ public class HubRules : IGameRule
     {
         throw new System.NotImplementedException();
     }
+
+    public void InitRules(GameData data, GameSettings settings)
+    {
+        throw new System.NotImplementedException();
+    }
 }

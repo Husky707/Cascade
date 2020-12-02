@@ -1,0 +1,11 @@
+﻿
+public interface ICommunicate 
+{
+
+
+}
+
+
+
+
+

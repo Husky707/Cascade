@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbae63f22abc7fd439d2c448ec89f71e, type: 3}
+  m_Name: C1v1_GameSettings
+  m_EditorClassIdentifier: 
+  _allowAbilities: 0
+  _maxAbilityUses: 6
+  _maxAbilityValueUses: 
+  _abilities:
+  - _ability: 00000000
+    _availabeAbilityValues: 
+    _maxAbilityValueUses: 
+    _maxAbilityTypeUses: 
+  _firstPlacementOnHome: 1
+  _firstPlacementBasic: 0
+  _mustPlaceEntireAbility: 1
+  _placementRule: 2
+  _numPlayers: 2
+  _colorSettings:
+  - _color: 1
+    _playerAssignment: 1
+    _colorHome: 2
+  - _color: 4
+    _playerAssignment: 2
+    _colorHome: 3
+  - _color: 2
+    _playerAssignment: 1
+    _colorHome: 4
+  - _color: 3
+    _playerAssignment: 2
+    _colorHome: 5
+  _turnOrder: 01000000040000000200000003000000
+  _startingDice: 20
+  _maxRounds: 40
