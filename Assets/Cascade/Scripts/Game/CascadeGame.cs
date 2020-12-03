@@ -10,8 +10,8 @@ public class CascadeGame : ScriptableObject
     public string GameModeName => _gameModeName;
     [SerializeField] private string _gameModeName = "...";
 
-    public GameRule Rules => _rules;
-    [SerializeField] private GameRule _rules = null;
+    public GameRules Rules => _rules;
+    [SerializeField] private GameRules _rules = null;
 
     public GameSettings GameSettings => _gameSettings;
     [SerializeField] private GameSettings _gameSettings = null;

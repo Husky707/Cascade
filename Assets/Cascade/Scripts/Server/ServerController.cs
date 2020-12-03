@@ -28,7 +28,6 @@ public class ServerController : NetworkManager
     public HubRoom ServerHub => _serverHub;
     private HubRoom _serverHub = null;
 
-    private HubRules HubRules;
     private RoomSettings HubSettings;
 
     bool isServer = false;

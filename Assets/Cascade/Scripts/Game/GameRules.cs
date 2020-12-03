@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class GameRule : IGameRule
+[CreateAssetMenu(fileName = "NewGameRules" , menuName = "GameSetup/GameRules")]
+public class GameRules : ScriptableObject , IGameRule
 {
-    public GameRule() { }
 
     public GameData Data => _data;
     private GameData _data = null;

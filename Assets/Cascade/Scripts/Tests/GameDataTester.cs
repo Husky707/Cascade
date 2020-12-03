@@ -8,8 +8,6 @@ public class GameDataTester : MonoBehaviour
     [SerializeField] bool runTest = false;
     private bool test = true;
 
-    [SerializeField] GameRule rules = null;
-
     //[SerializeField] GameSettings testGameSettings = null;
     //[SerializeField] BoardLayout testBoardLayout = null;
 
